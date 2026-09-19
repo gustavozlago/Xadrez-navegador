@@ -45,7 +45,7 @@
             align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             width: 100%;
-            max-width: 800px;
+            max-width: 1100px;
         }
 
         .control-group {
@@ -100,7 +100,7 @@
             text-align: center;
             border: 2px dashed #e0e1dd;
             width: 100%;
-            max-width: 800px;
+            max-width: 1100px;
             word-break: break-all;
             font-size: 13px;
         }
@@ -111,7 +111,7 @@
             gap: 15px;
             justify-content: center;
             align-items: flex-start;
-            max-width: 1100px;
+            max-width: 1150px;
             width: 100%;
         }
 
@@ -120,6 +120,7 @@
             max-width: min(450px, 88vw);
             margin: 0 auto;
             touch-action: none !important;
+            order: 2;
         }
 
         #board, #board * {
@@ -140,8 +141,16 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            width: 340px;
+            width: 280px;
             max-width: 100%;
+        }
+
+        .left-sidebar {
+            order: 1;
+        }
+
+        .right-sidebar {
+            order: 3;
         }
 
         .panel {
@@ -151,6 +160,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            width: 100%;
         }
 
         .panel-header {
@@ -164,12 +174,21 @@
 
         #userList, #bracketDisplay, #scoreTableContainer {
             padding: 8px;
-            max-height: 130px;
+            max-height: 140px;
             overflow-y: auto;
             font-size: 12px;
             display: flex;
             flex-direction: column;
             gap: 6px;
+        }
+
+        #moveHistoryContainer {
+            padding: 8px;
+            max-height: 380px;
+            overflow-y: auto;
+            font-size: 12px;
+            display: block; /* Corrigido de flex para block para permitir renderização correta no mobile */
+            width: 100%;
         }
 
         .user-badge, .bracket-match {
@@ -191,11 +210,13 @@
             border-collapse: collapse;
             font-size: 12px;
             text-align: center;
+            table-layout: fixed;
         }
 
         .score-table th, .score-table td {
             padding: 5px 3px;
             border-bottom: 1px solid #3d405b;
+            word-wrap: break-word;
         }
 
         .score-table th { background: #3d405b; color: #e0e1dd; }
@@ -212,7 +233,7 @@
         .role-b { background: #1e1e24; color: #fff; border: 1px solid #fff; }
         .role-spec { background: #8d99ae; color: #1e1e24; }
 
-        .chat-container { height: 200px; }
+        .chat-container { height: 220px; }
 
         .chat-messages {
             flex: 1;
@@ -245,9 +266,21 @@
             padding: 6px;
             background: #1e1e24;
             gap: 6px;
+            align-items: center;
+            width: 100%;
         }
 
-        .chat-input-area input { flex: 1; min-width: 0; }
+        .chat-input-area input { 
+            flex: 1; 
+            min-width: 0; 
+            width: 100%;
+        }
+
+        .chat-input-area button {
+            flex-shrink: 0;
+            width: auto;
+            padding: 8px 12px;
+        }
 
         #status {
             margin-top: 10px;
@@ -259,8 +292,15 @@
             padding: 8px;
             border-radius: 5px;
             width: 100%;
-            max-width: 800px;
+            max-width: 1100px;
             box-sizing: border-box;
+        }
+
+        @media (max-width: 900px) {
+            .board-wrapper { order: 1; max-width: min(85vw, 380px); }
+            .left-sidebar { order: 2; width: 100%; }
+            .right-sidebar { order: 3; width: 100%; }
+            #moveHistoryContainer { max-height: 200px; }
         }
 
         @media (max-width: 600px) {
@@ -274,6 +314,9 @@
                 padding: 8px;
             }
 
+            /* Restringindo o width: 100% apenas para os botões do painel superior */
+            .controls button { width: 100%; font-size: 12px; padding: 8px 4px; }
+
             #nickInput { grid-column: span 2; width: 100%; }
 
             .control-group {
@@ -286,10 +329,6 @@
             .control-group input { flex: 1; min-width: 0; width: 50%; }
             .control-group button { flex: 1; width: 50%; }
             .control-group select { flex: 1; }
-
-            button { width: 100%; font-size: 12px; padding: 8px 4px; }
-            .board-wrapper { max-width: min(85vw, 360px); }
-            .sidebar { width: 100%; }
         }
     </style>
 </head>
@@ -329,11 +368,34 @@
     <div id="roomDisplay"></div>
 
     <div class="main-container">
+        <!-- Coluna Esquerda: Histórico de Jogadas -->
+        <div class="sidebar left-sidebar">
+            <div class="panel">
+                <div class="panel-header">📜 Histórico de Jogadas</div>
+                <div id="moveHistoryContainer">
+                    <table class="score-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">#</th>
+                                <th style="width: 37.5%;">Brancas</th>
+                                <th style="width: 37.5%;">Pretas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="moveHistoryBody">
+                            <tr><td colspan="3" style="color: #8d99ae;">Nenhuma jogada realizada.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna Central: Tabuleiro -->
         <div class="board-wrapper">
             <div id="board"></div>
         </div>
 
-        <div class="sidebar">
+        <!-- Coluna Direita: Informações da Sala e Chat -->
+        <div class="sidebar right-sidebar">
             <div class="panel" id="scorePanel" style="display: none;">
                 <div class="panel-header">📊 Tabela de Pontuação</div>
                 <div id="scoreTableContainer">
@@ -389,7 +451,6 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <script>
-        // Configuração de Servidores STUN para WebRTC P2P
         const peerOptions = {
             config: {
                 iceServers: [
@@ -466,8 +527,6 @@
             setTimeout(() => { addChatMessage('🤖 IA', msg); }, delay);
         }
 
-        const pieceValues = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 1000 };
-
         function getNick() {
             let input = document.getElementById('nickInput').value.trim();
             return input ? input : 'Jogador';
@@ -475,6 +534,33 @@
 
         function sanitizeRoomCode(code) {
             return code.replace(/[^a-zA-Z0-9_-]/g, '');
+        }
+
+        function updateMoveHistory() {
+            let history = game.history();
+            let tbody = document.getElementById('moveHistoryBody');
+            if (!tbody) return;
+
+            if (history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="color: #8d99ae;">Nenhuma jogada realizada.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            for (let i = 0; i < history.length; i += 2) {
+                let moveNum = Math.floor(i / 2) + 1;
+                let whiteMove = history[i] || '';
+                let blackMove = history[i + 1] || '';
+                html += `<tr>
+                    <td>${moveNum}</td>
+                    <td><strong>${whiteMove}</strong></td>
+                    <td><strong>${blackMove}</strong></td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+
+            let container = document.getElementById('moveHistoryContainer');
+            if (container) container.scrollTop = container.scrollHeight;
         }
 
         function onDragStart (source, piece) {
@@ -506,10 +592,8 @@
 
             if (mode === 'online') {
                 if (isHost) {
-                    // O Host processa a jogada localmente e envia o broadcast aos clientes
                     handleGameMove(myPeerId, move, true);
                 } else if (hostConn) {
-                    // O Cliente envia a jogada ao Host
                     hostConn.send({ type: 'move', move: move, fen: game.fen() });
                 }
             } else if (isCpuMode && !game.game_over()) {
@@ -534,6 +618,8 @@
         function updateStatus () {
             let status = '';
             let moveColorName = (game.turn() === 'w') ? 'Brancas' : 'Pretas';
+
+            updateMoveHistory();
 
             if (game.in_checkmate()) {
                 let winnerColor = game.turn() === 'w' ? 'Pretas' : 'Brancas';
@@ -887,7 +973,6 @@
         }
 
         function handleGameMove(peerId, move, isLocalMove = false) {
-            // Se for do cliente, aplica no estado do host
             if (!isLocalMove) {
                 let res = game.move(move);
                 if (!res) return;
@@ -900,7 +985,6 @@
                 tocarSomMovimento();
             }
 
-            // Transmite a jogada para todos os outros jogadores/espectadores
             broadcast({ type: 'move', move: move, fen: game.fen() }, peerId);
 
             if (game.in_checkmate()) {
@@ -1179,7 +1263,6 @@
             }
         }
 
-        // Inicializa offline ao abrir
         startOffline('local');
     </script>
 </body>
