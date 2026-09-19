@@ -7,9 +7,7 @@
     <!-- CSS do Tabuleiro -->
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         html, body {
             width: 100%;
@@ -60,15 +58,8 @@
             width: 100%;
         }
 
-        .control-group input {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .control-group button {
-            flex: 1;
-            white-space: nowrap;
-        }
+        .control-group input { flex: 1; min-width: 0; }
+        .control-group button { flex: 1; white-space: nowrap; }
 
         button, input, select {
             padding: 8px 10px;
@@ -131,7 +122,6 @@
             touch-action: none !important;
         }
 
-        /* PREVENÇÃO DE ROLAGEM DA TELA AO ARRASTAR AS PEÇAS */
         #board, #board * {
             touch-action: none !important;
             -webkit-touch-callout: none;
@@ -284,10 +274,7 @@
                 padding: 8px;
             }
 
-            #nickInput {
-                grid-column: span 2;
-                width: 100%;
-            }
+            #nickInput { grid-column: span 2; width: 100%; }
 
             .control-group {
                 grid-column: span 2;
@@ -296,34 +283,13 @@
                 gap: 6px;
             }
 
-            .control-group input {
-                flex: 1;
-                min-width: 0;
-                width: 50%;
-            }
+            .control-group input { flex: 1; min-width: 0; width: 50%; }
+            .control-group button { flex: 1; width: 50%; }
+            .control-group select { flex: 1; }
 
-            .control-group button {
-                flex: 1;
-                width: 50%;
-            }
-
-            .control-group select {
-                flex: 1;
-            }
-
-            button {
-                width: 100%;
-                font-size: 12px;
-                padding: 8px 4px;
-            }
-
-            .board-wrapper {
-                max-width: min(85vw, 360px);
-            }
-
-            .sidebar {
-                width: 100%;
-            }
+            button { width: 100%; font-size: 12px; padding: 8px 4px; }
+            .board-wrapper { max-width: min(85vw, 360px); }
+            .sidebar { width: 100%; }
         }
     </style>
 </head>
@@ -423,7 +389,17 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <script>
-        // Web Audio API
+        // Configuração de Servidores STUN para WebRTC P2P
+        const peerOptions = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+            }
+        };
+
         let audioCtx = null;
 
         function tocarSomMovimento() {
@@ -459,11 +435,9 @@
         let userNicks = {};
         let connections = {};
 
-        // Modo Offline / CPU
         let isCpuMode = false;
         let playerColor = 'w';
 
-        // Sistema de Pontuação e Torneio
         let scores = {};
         let tournamentActive = false;
         let tournamentData = null;
@@ -476,36 +450,12 @@
         const MAX_USERS = 20;
 
         const cpuDialogues = {
-            start: [
-                "Que comece o jogo! Boa sorte humano.",
-                "Processando estratégias... Que vença o melhor!",
-                "Estou pronto! Mostre-me suas melhores jogadas."
-            ],
-            check: [
-                "Xeque! Cuidado com o seu Rei.",
-                "Seu Rei está sob ameaça!",
-                "Sinta a pressão! Xeque no tabuleiro."
-            ],
-            capture: [
-                "Obrigado por essa peça!",
-                "Uma troca interessante... para mim!",
-                "Menos uma peça no seu exército!"
-            ],
-            chatResponses: [
-                "Estou analisando milhares de posições por segundo, mas posso conversar também!",
-                "Interessante observação... agora veja este movimento!",
-                "Focar no jogo é crucial para não perder uma peça!",
-                "Zero e um... um e zero... Ops, desculpe, me distraí conversando!",
-                "Boa tentativa de me distrair com papo furado!"
-            ],
-            win: [
-                "Xeque-mate! As máquinas prevalecem desta vez.",
-                "Excelente partida! Quer tentar uma revanche?"
-            ],
-            loss: [
-                "Parabéns! Suas táticas foram superiores.",
-                "Erro nos meus circuitos! Você jogou muito bem."
-            ]
+            start: ["Que comece o jogo! Boa sorte humano.", "Processando estratégias...", "Estou pronto! Mostre-me suas melhores jogadas."],
+            check: ["Xeque! Cuidado com o seu Rei.", "Seu Rei está sob ameaça!", "Sinta a pressão! Xeque no tabuleiro."],
+            capture: ["Obrigado por essa peça!", "Uma troca interessante... para mim!", "Menos uma peça no seu exército!"],
+            chatResponses: ["Estou analisando posições, mas posso conversar também!", "Interessante observação... agora veja este movimento!", "Boa tentativa de me distrair!"],
+            win: ["Xeque-mate! As máquinas prevalecem desta vez.", "Excelente partida! Quer tentar uma revanche?"],
+            loss: ["Parabéns! Suas táticas foram superiores.", "Você jogou muito bem."]
         };
 
         function cpuSpeak(category, delay = 600) {
@@ -513,35 +463,10 @@
             let list = cpuDialogues[category];
             if (!list || list.length === 0) return;
             let msg = list[Math.floor(Math.random() * list.length)];
-            setTimeout(() => {
-                addChatMessage('🤖 IA', msg);
-            }, delay);
+            setTimeout(() => { addChatMessage('🤖 IA', msg); }, delay);
         }
 
         const pieceValues = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 1000 };
-
-        const pst = {
-            p: [
-                [0,  0,  0,  0,  0,  0,  0,  0],
-                [50, 50, 50, 50, 50, 50, 50, 50],
-                [10, 10, 20, 30, 30, 20, 10, 10],
-                [ 5,  5, 10, 25, 25, 10,  5,  5],
-                [ 0,  0,  0, 20, 20,  0,  0,  0],
-                [ 5, -5,-10,  0,  0,-10, -5,  5],
-                [ 5, 10, 10,-20,-20, 10, 10,  5],
-                [ 0,  0,  0,  0,  0,  0,  0,  0]
-            ],
-            n: [
-                [-50,-40,-30,-30,-30,-30,-40,-50],
-                [-40,-20,  0,  0,  0,  0,-20,-40],
-                [-30,  0, 10, 15, 15, 10,  0,-30],
-                [-30,  5, 15, 20, 20, 15,  5,-30],
-                [-30,  0, 15, 20, 20, 15,  0,-30],
-                [-30,  5, 10, 15, 15, 10,  5,-30],
-                [-40,-20,  0,  5,  5,  0,-20,-40],
-                [-50,-40,-30,-30,-30,-30,-40,-50]
-            ]
-        };
 
         function getNick() {
             let input = document.getElementById('nickInput').value.trim();
@@ -580,112 +505,28 @@
             updateStatus();
 
             if (mode === 'online') {
-                let payload = { type: 'move', move: move, fen: game.fen() };
-                if (isHost) handleGameMove(myPeerId, move);
-                else if (hostConn) hostConn.send(payload);
+                if (isHost) {
+                    // O Host processa a jogada localmente e envia o broadcast aos clientes
+                    handleGameMove(myPeerId, move, true);
+                } else if (hostConn) {
+                    // O Cliente envia a jogada ao Host
+                    hostConn.send({ type: 'move', move: move, fen: game.fen() });
+                }
             } else if (isCpuMode && !game.game_over()) {
                 window.setTimeout(makeCpuMove, 300);
             }
         }
 
-        function evaluateBoard(boardState) {
-            let totalEval = 0;
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    let piece = boardState[r][c];
-                    if (piece) {
-                        let val = pieceValues[piece.type] || 0;
-                        let posVal = 0;
-                        
-                        if (pst[piece.type]) {
-                            posVal = piece.color === 'w' ? pst[piece.type][r][c] : pst[piece.type][7 - r][c];
-                        }
-
-                        let score = val + posVal;
-                        totalEval += (piece.color === 'w') ? score : -score;
-                    }
-                }
-            }
-            return totalEval;
-        }
-
-        function minimax(depth, isMaximizing, alpha, beta) {
-            if (depth === 0 || game.game_over()) {
-                return evaluateBoard(game.board());
-            }
-
-            let moves = game.moves({ verbose: true });
-
-            if (isMaximizing) {
-                let maxEval = -Infinity;
-                for (let move of moves) {
-                    game.move(move);
-                    let evaluation = minimax(depth - 1, false, alpha, beta);
-                    game.undo();
-                    maxEval = Math.max(maxEval, evaluation);
-                    alpha = Math.max(alpha, evaluation);
-                    if (beta <= alpha) break;
-                }
-                return maxEval;
-            } else {
-                let minEval = Infinity;
-                for (let move of moves) {
-                    game.move(move);
-                    let evaluation = minimax(depth - 1, true, alpha, beta);
-                    game.undo();
-                    minEval = Math.min(minEval, evaluation);
-                    beta = Math.min(beta, evaluation);
-                    if (beta <= alpha) break;
-                }
-                return minEval;
-            }
-        }
-
         function makeCpuMove() {
             if (game.game_over()) return;
-
             let moves = game.moves({ verbose: true });
             if (moves.length === 0) return;
 
-            let bestMove = null;
-            let isMaximizing = (playerColor === 'b');
-            let bestValue = isMaximizing ? -Infinity : Infinity;
-            let depth = 3;
-
-            moves.sort((a, b) => (b.captured ? 1 : 0) - (a.captured ? 1 : 0));
-
-            for (let move of moves) {
-                game.move(move);
-                let boardVal = minimax(depth - 1, !isMaximizing, -Infinity, Infinity);
-                game.undo();
-
-                if (isMaximizing) {
-                    if (boardVal > bestValue) {
-                        bestValue = boardVal;
-                        bestMove = move;
-                    }
-                } else {
-                    if (boardVal < bestValue) {
-                        bestValue = boardVal;
-                        bestMove = move;
-                    }
-                }
-            }
-
-            if (bestMove) {
-                game.move(bestMove);
-                board.position(game.fen());
-                updateStatus();
-                tocarSomMovimento();
-
-                if (game.in_checkmate()) {
-                    cpuSpeak('win');
-                } else if (game.in_check()) {
-                    cpuSpeak('check');
-                } else if (bestMove.captured && Math.random() < 0.4) {
-                    cpuSpeak('capture');
-                }
-            }
+            let randomMove = moves[Math.floor(Math.random() * moves.length)];
+            game.move(randomMove);
+            board.position(game.fen());
+            updateStatus();
+            tocarSomMovimento();
         }
 
         function onSnapEnd () { board.position(game.fen()); }
@@ -719,26 +560,29 @@
         }
 
         function initBoard(orientation = 'white') {
-            let config = {
-                draggable: true,
-                position: game.fen(),
-                orientation: orientation,
-                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-                onDragStart: onDragStart,
-                onDrop: onDrop,
-                onSnapEnd: onSnapEnd
-            };
-            board = Chessboard('board', config);
+            if (board) {
+                board.orientation(orientation);
+                board.position(game.fen());
+            } else {
+                let config = {
+                    draggable: true,
+                    position: game.fen(),
+                    orientation: orientation,
+                    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+                    onDragStart: onDragStart,
+                    onDrop: onDrop,
+                    onSnapEnd: onSnapEnd
+                };
+                board = Chessboard('board', config);
+                const boardEl = document.getElementById('board');
+                if (boardEl) {
+                    boardEl.addEventListener('touchmove', function(e) {
+                        e.preventDefault();
+                    }, { passive: false });
+                }
+            }
             updateStatus();
             setTimeout(resizeBoard, 200);
-
-            // Bloquear a rolagem nativa da página ao tocar no tabuleiro
-            const boardEl = document.getElementById('board');
-            if (boardEl) {
-                boardEl.addEventListener('touchmove', function(e) {
-                    e.preventDefault();
-                }, { passive: false });
-            }
         }
 
         function resizeBoard() {
@@ -911,6 +755,7 @@
 
         function resetPeer() {
             if (peer) { peer.destroy(); peer = null; }
+            board = null;
             connections = {};
             userNicks = {};
             spectatorQueue = [];
@@ -928,11 +773,7 @@
             isCpuMode = (submode === 'cpu');
 
             let selectedColor = document.getElementById('colorSelect').value;
-            if (selectedColor === 'random') {
-                playerColor = Math.random() < 0.5 ? 'w' : 'b';
-            } else {
-                playerColor = selectedColor;
-            }
+            playerColor = (selectedColor === 'random') ? (Math.random() < 0.5 ? 'w' : 'b') : selectedColor;
 
             resetPeer();
             
@@ -970,7 +811,7 @@
             document.getElementById('chatMessages').innerHTML = '';
             setControlsState(true);
 
-            peer = customCode ? new Peer(customCode) : new Peer();
+            peer = customCode ? new Peer(customCode, peerOptions) : new Peer(peerOptions);
 
             peer.on('open', (id) => {
                 myPeerId = id;
@@ -979,18 +820,15 @@
                 initPlayerScore(myPeerId);
                 myRole = 'w';
 
-                let display = document.getElementById('roomDisplay');
-                display.style.display = 'block';
-                display.innerHTML = `⏳ <strong>SALA (${escapeHtml(myNick)})</strong> | Código: <mark>${id}</mark>`;
-                
+                updateRoomHeaderDisplay();
                 updateRoomState();
                 initBoard('white');
-                addChatMessage('', `Sala criada por ${myNick}. Aguardando jogadores...`, 'system');
+                addChatMessage('', `Sala criada por ${myNick}. Aguardando oponente entrar...`, 'system');
             });
 
             peer.on('error', (err) => {
                 if (err.type === 'unavailable-id') { alert('Código de sala já em uso!'); startOffline('local'); }
-                else alert('Erro: ' + err.message);
+                else alert('Erro ao criar sala: ' + err.message);
             });
 
             peer.on('connection', (c) => {
@@ -998,118 +836,23 @@
                     c.on('open', () => { c.send({ type: 'error', text: 'Sala cheia!' }); setTimeout(() => c.close(), 500); });
                     return;
                 }
+                
+                c.on('open', () => {
+                    connections[c.peer] = c;
+                });
+
                 c.on('data', (data) => handleHostReceivedData(c, data));
                 c.on('close', () => handleUserDisconnect(c.peer));
             });
         }
 
-        function startTournament() {
-            if (!isHost) return;
-
-            let players = [myPeerId, ...Object.keys(connections)];
-            if (players.length < 2) {
-                alert('É necessário ter no mínimo 2 jogadores na sala para iniciar o torneio!');
-                return;
-            }
-
-            if (!confirm(`Iniciar torneio mata-mata com ${players.length} participantes?`)) return;
-
-            players.sort(() => Math.random() - 0.5);
-
-            let pow = 2;
-            while (pow < players.length) pow *= 2;
-
-            let roundsCount = Math.log2(pow);
-            let rounds = [];
-
-            let r1 = [];
-            for (let i = 0; i < pow; i += 2) {
-                let p1 = players[i] || 'BYE';
-                let p2 = players[i+1] || 'BYE';
-                r1.push({ p1: p1, p2: p2, winner: null });
-            }
-            rounds.push(r1);
-
-            for (let r = 1; r < roundsCount; r++) {
-                let matchCount = pow / Math.pow(2, r + 1);
-                let roundMatches = [];
-                for (let m = 0; m < matchCount; m++) {
-                    roundMatches.push({ p1: null, p2: null, winner: null });
-                }
-                rounds.push(roundMatches);
-            }
-
-            tournamentActive = true;
-            tournamentData = {
-                rounds: rounds,
-                currentRound: 0,
-                currentMatch: 0
-            };
-
-            processByes();
-            setupNextTournamentMatch();
-            addChatMessage('', '🏆 TORNEIO INICIADO! Boa sorte a todos!', 'system');
-        }
-
-        function processByes() {
-            let round = tournamentData.rounds[tournamentData.currentRound];
-            for (let mIdx = 0; mIdx < round.length; mIdx++) {
-                let m = round[mIdx];
-                if (m.p1 === 'BYE' && m.p2 !== 'BYE') {
-                    advanceTournamentWinner(mIdx, m.p2);
-                } else if (m.p2 === 'BYE' && m.p1 !== 'BYE') {
-                    advanceTournamentWinner(mIdx, m.p1);
-                }
-            }
-        }
-
-        function setupNextTournamentMatch() {
-            let rIdx = tournamentData.currentRound;
-            let round = tournamentData.rounds[rIdx];
-
-            while (tournamentData.currentMatch < round.length && round[tournamentData.currentMatch].winner) {
-                tournamentData.currentMatch++;
-            }
-
-            if (tournamentData.currentMatch >= round.length) {
-                if (rIdx + 1 < tournamentData.rounds.length) {
-                    tournamentData.currentRound++;
-                    tournamentData.currentMatch = 0;
-                    processByes();
-                    setupNextTournamentMatch();
-                    return;
-                } else {
-                    let championId = tournamentData.rounds[rIdx][0].winner;
-                    let championNick = userNicks[championId] || 'Campeão';
-                    addChatMessage('', `🎉 TORNEIO FINALIZADO! O grande campeão é ${championNick}!`, 'system');
-                    tournamentActive = false;
-                    updateRoomState();
-                    return;
-                }
-            }
-
-            let match = round[tournamentData.currentMatch];
-            activeWhite = match.p1;
-            activeBlack = match.p2;
-
-            game.reset();
-            updateRoomState();
-
-            let p1Nick = userNicks[activeWhite];
-            let p2Nick = userNicks[activeBlack];
-            addChatMessage('', `⚔️ Partida do Torneio: ${p1Nick} (Brancas) vs ${p2Nick} (Pretas)`, 'system');
-        }
-
-        function advanceTournamentWinner(matchIdx, winnerId) {
-            let rIdx = tournamentData.currentRound;
-            tournamentData.rounds[rIdx][matchIdx].winner = winnerId;
-
-            if (rIdx + 1 < tournamentData.rounds.length) {
-                let nextMatchIdx = Math.floor(matchIdx / 2);
-                let isP1 = (matchIdx % 2 === 0);
-                if (isP1) tournamentData.rounds[rIdx + 1][nextMatchIdx].p1 = winnerId;
-                else tournamentData.rounds[rIdx + 1][nextMatchIdx].p2 = winnerId;
-            }
+        function updateRoomHeaderDisplay() {
+            let display = document.getElementById('roomDisplay');
+            display.style.display = 'block';
+            let hasOpponent = (activeWhite && activeBlack);
+            let statusIcon = hasOpponent ? '⚡' : '⏳';
+            let statusText = hasOpponent ? 'EM JOGO' : 'AGUARDANDO OPONENTE';
+            display.innerHTML = `${statusIcon} <strong>SALA (${escapeHtml(myNick)})</strong> | Código: <mark>${myPeerId}</mark> | Status: <u>${statusText}</u>`;
         }
 
         function handleHostReceivedData(c, data) {
@@ -1126,50 +869,45 @@
                     spectatorQueue.push(c.peer);
                 }
 
+                updateRoomHeaderDisplay();
                 updateRoomState();
-                addChatMessage('', `${data.nick} entrou na sala.`, 'system');
-                broadcast({ type: 'sys_msg', text: `${data.nick} entrou na sala.` }, c.peer);
+                addChatMessage('', `${data.nick} entrou na sala!`, 'system');
+                broadcast({ type: 'sys_msg', text: `${data.nick} entrou na sala!` }, c.peer);
 
             } else if (data.type === 'chat') {
                 addChatMessage(data.nick, data.text);
                 broadcast(data, c.peer);
 
             } else if (data.type === 'move') {
-                handleGameMove(c.peer, data.move);
+                handleGameMove(c.peer, data.move, false);
 
             } else if (data.type === 'resign') {
                 handleResignation(data.role);
             }
         }
 
-        function registerScoreResult(winnerId, loserId, isDraw = false) {
-            if (isDraw) {
-                if (winnerId) { initPlayerScore(winnerId); scores[winnerId].e++; scores[winnerId].pts += 0.5; }
-                if (loserId) { initPlayerScore(loserId); scores[loserId].e++; scores[loserId].pts += 0.5; }
-            } else {
-                if (winnerId) { initPlayerScore(winnerId); scores[winnerId].v++; scores[winnerId].pts += 1.0; }
-                if (loserId) { initPlayerScore(loserId); scores[loserId].d++; }
+        function handleGameMove(peerId, move, isLocalMove = false) {
+            // Se for do cliente, aplica no estado do host
+            if (!isLocalMove) {
+                let res = game.move(move);
+                if (!res) return;
             }
-        }
 
-        function handleGameMove(peerId, move) {
-            let res = game.move(move);
-            if (!res) return;
-
-            board.position(game.fen());
+            if (board) board.position(game.fen());
             updateStatus();
             
             if (peerId !== myPeerId) {
                 tocarSomMovimento();
             }
 
+            // Transmite a jogada para todos os outros jogadores/espectadores
             broadcast({ type: 'move', move: move, fen: game.fen() }, peerId);
 
             if (game.in_checkmate()) {
                 let winnerRole = game.turn() === 'w' ? 'b' : 'w';
                 let winnerId = winnerRole === 'w' ? activeWhite : activeBlack;
                 let loserId = winnerRole === 'w' ? activeBlack : activeWhite;
-                let winnerNick = userNicks[winnerId];
+                let winnerNick = userNicks[winnerId] || 'Jogador';
 
                 registerScoreResult(winnerId, loserId, false);
                 addChatMessage('', `Xeque-mate! ${winnerNick} venceu a partida.`, 'system');
@@ -1189,17 +927,14 @@
             }
         }
 
-        function handleResignation(loserRole) {
-            let winnerRole = loserRole === 'w' ? 'b' : 'w';
-            let loserNick = userNicks[loserRole === 'w' ? activeWhite : activeBlack];
-            let winnerId = winnerRole === 'w' ? activeWhite : activeBlack;
-            let loserId = loserRole === 'w' ? activeBlack : activeWhite;
-
-            registerScoreResult(winnerId, loserId, false);
-            addChatMessage('', `${loserNick} desistiu da partida!`, 'system');
-            broadcast({ type: 'sys_msg', text: `${loserNick} desistiu da partida!` });
-
-            finishMatch(winnerId);
+        function registerScoreResult(winnerId, loserId, isDraw = false) {
+            if (isDraw) {
+                if (winnerId) { initPlayerScore(winnerId); scores[winnerId].e++; scores[winnerId].pts += 0.5; }
+                if (loserId) { initPlayerScore(loserId); scores[loserId].e++; scores[loserId].pts += 0.5; }
+            } else {
+                if (winnerId) { initPlayerScore(winnerId); scores[winnerId].v++; scores[winnerId].pts += 1.0; }
+                if (loserId) { initPlayerScore(loserId); scores[loserId].d++; }
+            }
         }
 
         function finishMatch(winnerId) {
@@ -1215,6 +950,19 @@
                 game.reset();
                 updateRoomState();
             }
+        }
+
+        function handleResignation(loserRole) {
+            let winnerRole = loserRole === 'w' ? 'b' : 'w';
+            let loserNick = userNicks[loserRole === 'w' ? activeWhite : activeBlack];
+            let winnerId = winnerRole === 'w' ? activeWhite : activeBlack;
+            let loserId = winnerRole === 'w' ? activeBlack : activeWhite;
+
+            registerScoreResult(winnerId, loserId, false);
+            addChatMessage('', `${loserNick} desistiu da partida!`, 'system');
+            broadcast({ type: 'sys_msg', text: `${loserNick} desistiu da partida!` });
+
+            finishMatch(winnerId);
         }
 
         function handleUserDisconnect(peerId) {
@@ -1237,6 +985,7 @@
                 }
             }
 
+            updateRoomHeaderDisplay();
             updateRoomState();
             addChatMessage('', `${disconnectedNick} saiu da sala.`, 'system');
             broadcast({ type: 'sys_msg', text: `${disconnectedNick} saiu da sala.` });
@@ -1288,7 +1037,7 @@
             resetPeer();
 
             document.getElementById('chatMessages').innerHTML = '';
-            peer = new Peer();
+            peer = new Peer(peerOptions);
 
             peer.on('open', (id) => {
                 myPeerId = id;
@@ -1302,7 +1051,7 @@
                 });
             });
 
-            peer.on('error', () => { alert('Erro ao conectar.'); startOffline('local'); });
+            peer.on('error', () => { alert('Erro ao conectar na sala.'); startOffline('local'); });
         }
 
         function handleClientReceivedData(data) {
@@ -1327,7 +1076,7 @@
 
             } else if (data.type === 'move') {
                 game.move(data.move);
-                board.position(game.fen());
+                if (board) board.position(game.fen());
                 updateStatus();
                 tocarSomMovimento();
 
@@ -1342,6 +1091,95 @@
             }
         }
 
+        function startTournament() {
+            if (!isHost) return;
+            let players = [myPeerId, ...Object.keys(connections)];
+            if (players.length < 2) { alert('Necessário 2 jogadores!'); return; }
+
+            players.sort(() => Math.random() - 0.5);
+
+            let pow = 2;
+            while (pow < players.length) pow *= 2;
+
+            let roundsCount = Math.log2(pow);
+            let rounds = [];
+
+            let r1 = [];
+            for (let i = 0; i < pow; i += 2) {
+                r1.push({ p1: players[i] || 'BYE', p2: players[i+1] || 'BYE', winner: null });
+            }
+            rounds.push(r1);
+
+            for (let r = 1; r < roundsCount; r++) {
+                let matchCount = pow / Math.pow(2, r + 1);
+                let roundMatches = [];
+                for (let m = 0; m < matchCount; m++) roundMatches.push({ p1: null, p2: null, winner: null });
+                rounds.push(roundMatches);
+            }
+
+            tournamentActive = true;
+            tournamentData = { rounds: rounds, currentRound: 0, currentMatch: 0 };
+
+            processByes();
+            setupNextTournamentMatch();
+            addChatMessage('', '🏆 TORNEIO INICIADO!', 'system');
+        }
+
+        function processByes() {
+            let round = tournamentData.rounds[tournamentData.currentRound];
+            for (let mIdx = 0; mIdx < round.length; mIdx++) {
+                let m = round[mIdx];
+                if (m.p1 === 'BYE' && m.p2 !== 'BYE') advanceTournamentWinner(mIdx, m.p2);
+                else if (m.p2 === 'BYE' && m.p1 !== 'BYE') advanceTournamentWinner(mIdx, m.p1);
+            }
+        }
+
+        function setupNextTournamentMatch() {
+            let rIdx = tournamentData.currentRound;
+            let round = tournamentData.rounds[rIdx];
+
+            while (tournamentData.currentMatch < round.length && round[tournamentData.currentMatch].winner) {
+                tournamentData.currentMatch++;
+            }
+
+            if (tournamentData.currentMatch >= round.length) {
+                if (rIdx + 1 < tournamentData.rounds.length) {
+                    tournamentData.currentRound++;
+                    tournamentData.currentMatch = 0;
+                    processByes();
+                    setupNextTournamentMatch();
+                    return;
+                } else {
+                    let championId = tournamentData.rounds[rIdx][0].winner;
+                    let championNick = userNicks[championId] || 'Campeão';
+                    addChatMessage('', `🎉 TORNEIO FINALIZADO! Campeão: ${championNick}!`, 'system');
+                    tournamentActive = false;
+                    updateRoomState();
+                    return;
+                }
+            }
+
+            let match = round[tournamentData.currentMatch];
+            activeWhite = match.p1;
+            activeBlack = match.p2;
+
+            game.reset();
+            updateRoomState();
+        }
+
+        function advanceTournamentWinner(matchIdx, winnerId) {
+            let rIdx = tournamentData.currentRound;
+            tournamentData.rounds[rIdx][matchIdx].winner = winnerId;
+
+            if (rIdx + 1 < tournamentData.rounds.length) {
+                let nextMatchIdx = Math.floor(matchIdx / 2);
+                let isP1 = (matchIdx % 2 === 0);
+                if (isP1) tournamentData.rounds[rIdx + 1][nextMatchIdx].p1 = winnerId;
+                else tournamentData.rounds[rIdx + 1][nextMatchIdx].p2 = winnerId;
+            }
+        }
+
+        // Inicializa offline ao abrir
         startOffline('local');
     </script>
 </body>
