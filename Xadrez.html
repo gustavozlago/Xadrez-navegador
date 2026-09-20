@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xadrez Web - Torneio & Modo Computador IA</title>
+    <title>Xadrez de Navegador</title>
     <!-- CSS do Tabuleiro -->
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <style>
+        :root {
+            --board-light: #f0d9b5;
+            --board-dark: #b58863;
+        }
+
         * { box-sizing: border-box; }
 
         html, body {
@@ -26,26 +31,142 @@
             min-height: 100vh;
         }
 
-        h1 { 
-            margin-top: 2px;
-            margin-bottom: 10px; 
-            font-size: 20px;
-            text-align: center;
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1150px;
+            margin-bottom: 10px;
+            gap: 10px;
         }
 
-        .controls {
-            background: #2b2d42;
-            padding: 10px;
+        /* Logotipo Exclusivo e 100% Original */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #2b2d42 0%, #3d405b 100%);
+            padding: 6px 14px;
             border-radius: 8px;
-            margin-bottom: 10px;
+            border: 1px solid #4a4e69;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .chess-logo-icon {
+            font-size: 20px;
+            background: linear-gradient(135deg, #f77f00, #d66800);
+            color: white;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(247,127,0,0.4);
+        }
+
+        .chess-logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #ffffff, #e0e1dd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-subtitle {
+            font-size: 9px;
+            color: #8d99ae;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .top-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-settings {
+            background-color: #3d405b;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-settings:hover { background-color: #4a4e69; }
+        .btn-about { background-color: #2a9d8f; }
+        .btn-about:hover { background-color: #21867a; }
+
+        /* Modal / Janelas Ocultas */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background: #2b2d42;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid #4a4e69;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+            border-bottom: 1px solid #3d405b;
+            padding-bottom: 8px;
+        }
+
+        .modal-close {
+            background: #e63946;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-close:hover { background: #d62828; }
+
+        .controls {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             width: 100%;
-            max-width: 1100px;
         }
 
         .control-group {
@@ -53,7 +174,7 @@
             gap: 6px;
             align-items: center;
             background: #3d405b;
-            padding: 4px 8px;
+            padding: 6px 10px;
             border-radius: 6px;
             width: 100%;
         }
@@ -100,7 +221,7 @@
             text-align: center;
             border: 2px dashed #e0e1dd;
             width: 100%;
-            max-width: 1100px;
+            max-width: 1150px;
             word-break: break-all;
             font-size: 13px;
         }
@@ -121,7 +242,59 @@
             margin: 0 auto;
             touch-action: none !important;
             order: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
+
+        #board div[class*="white-"] {
+            background-color: var(--board-light) !important;
+        }
+
+        #board div[class*="black-"] {
+            background-color: var(--board-dark) !important;
+        }
+
+        .clock-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .clock-card {
+            flex: 1;
+            background: #2b2d42;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #3d405b;
+            transition: all 0.2s;
+        }
+
+        .clock-card.active {
+            border-color: #f77f00;
+            background: #3d405b;
+            box-shadow: 0 0 8px rgba(247, 127, 0, 0.4);
+        }
+
+        .clock-card.low-time {
+            border-color: #e63946;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .clock-name { font-weight: bold; font-size: 12px; }
+        .clock-time { font-family: monospace; font-size: 18px; font-weight: bold; color: #4caf50; }
+        .clock-card.active .clock-time { color: #f77f00; }
+        .clock-card.low-time .clock-time { color: #e63946; }
 
         #board, #board * {
             touch-action: none !important;
@@ -130,11 +303,20 @@
             user-select: none;
         }
 
+        .square-55d63, .piece-417db, #board img {
+            transition: none !important;
+            -webkit-transition: none !important;
+            animation: none !important;
+            -webkit-animation: none !important;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         #board {
             width: 100% !important;
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
             border-radius: 4px;
             overflow: hidden;
+            position: relative;
         }
 
         .sidebar {
@@ -145,13 +327,8 @@
             max-width: 100%;
         }
 
-        .left-sidebar {
-            order: 1;
-        }
-
-        .right-sidebar {
-            order: 3;
-        }
+        .left-sidebar { order: 1; }
+        .right-sidebar { order: 3; }
 
         .panel {
             background: #2b2d42;
@@ -187,7 +364,7 @@
             max-height: 380px;
             overflow-y: auto;
             font-size: 12px;
-            display: block; /* Corrigido de flex para block para permitir renderização correta no mobile */
+            display: block;
             width: 100%;
         }
 
@@ -270,17 +447,8 @@
             width: 100%;
         }
 
-        .chat-input-area input { 
-            flex: 1; 
-            min-width: 0; 
-            width: 100%;
-        }
-
-        .chat-input-area button {
-            flex-shrink: 0;
-            width: auto;
-            padding: 8px 12px;
-        }
+        .chat-input-area input { flex: 1; min-width: 0; width: 100%; }
+        .chat-input-area button { flex-shrink: 0; width: auto; padding: 8px 12px; }
 
         #status {
             margin-top: 10px;
@@ -292,7 +460,7 @@
             padding: 8px;
             border-radius: 5px;
             width: 100%;
-            max-width: 1100px;
+            max-width: 1150px;
             box-sizing: border-box;
         }
 
@@ -302,67 +470,158 @@
             .right-sidebar { order: 3; width: 100%; }
             #moveHistoryContainer { max-height: 200px; }
         }
-
-        @media (max-width: 600px) {
-            body { padding: 4px; }
-            h1 { font-size: 18px; margin-bottom: 8px; }
-            
-            .controls {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-                padding: 8px;
-            }
-
-            /* Restringindo o width: 100% apenas para os botões do painel superior */
-            .controls button { width: 100%; font-size: 12px; padding: 8px 4px; }
-
-            #nickInput { grid-column: span 2; width: 100%; }
-
-            .control-group {
-                grid-column: span 2;
-                display: flex;
-                width: 100%;
-                gap: 6px;
-            }
-
-            .control-group input { flex: 1; min-width: 0; width: 50%; }
-            .control-group button { flex: 1; width: 50%; }
-            .control-group select { flex: 1; }
-        }
     </style>
 </head>
 <body>
 
-    <h1>Xadrez Web</h1>
-
-    <div class="controls">
-        <input type="text" id="nickInput" class="nick-input" placeholder="Seu Nickname" value="Jogador">
-        
-        <div class="control-group">
-            <label for="colorSelect" style="font-size: 12px; font-weight: bold; white-space: nowrap;">Cor:</label>
-            <select id="colorSelect" style="width: 100%;">
-                <option value="w">♔ Brancas</option>
-                <option value="b">♚ Pretas</option>
-                <option value="random">🎲 Aleatória</option>
-            </select>
+    <div class="top-bar">
+        <!-- Logotipo Exclusivo e Original -->
+        <div class="logo-container">
+            <div class="chess-logo-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </div>
+            <div class="chess-logo-text">
+                <span class="logo-title">XADREZ</span>
+                <span class="logo-subtitle">DE NAVEGADOR</span>
+            </div>
         </div>
 
-        <button onclick="startOffline('local')">Offline Local</button>
-        <button class="btn-cpu" onclick="startOffline('cpu')">🤖 vs IA</button>
-        
-        <div class="control-group">
-            <input type="text" id="createRoomIdInput" placeholder="Código Criar">
-            <button class="btn-alt" onclick="createOnlineRoom()">Criar Sala</button>
+        <div class="top-buttons">
+            <button class="btn-settings btn-about" onclick="toggleAboutModal()">ℹ️ Sobre</button>
+            <button class="btn-settings" onclick="toggleSettingsModal()">⚙️ Configurações</button>
         </div>
+    </div>
 
-        <div class="control-group">
-            <input type="text" id="joinRoomIdInput" placeholder="Código Entrar">
-            <button class="btn-alt" onclick="joinOnlineRoom()">Entrar</button>
+    <!-- Modal de "Sobre" com Logotipo Exclusivo -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>ℹ️ Sobre o Xadrez de Navegador</span>
+                <button class="modal-close" onclick="toggleAboutModal()">✕ Fechar</button>
+            </div>
+            <div style="font-size: 13px; line-height: 1.6; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;">
+                
+                <!-- Logotipo em destaque dentro do Sobre -->
+                <div class="logo-container" style="margin: 5px 0;">
+                    <div class="chess-logo-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="chess-logo-text" style="text-align: left;">
+                        <span class="logo-title">XADREZ</span>
+                        <span class="logo-subtitle">DE NAVEGADOR</span>
+                    </div>
+                </div>
+
+                <p style="text-align: left; width: 100%;">Bem-vindo ao <strong>Xadrez de Navegador</strong>, uma plataforma completa de xadrez em tempo real que suporta partidas locais, partidas contra Inteligência Artificial com múltiplos níveis de dificuldade, salas online para vários jogadores e torneios automatizados.</p>
+                <p style="text-align: left; width: 100%;">O sistema conta com relógio de precisão em milissegundos, personalização de temas visuais e de peças, além de chat integrado e histórico detalhado.</p>
+                
+                <hr style="border: 0; border-top: 1px solid #3d405b; margin: 4px 0; width: 100%;">
+                
+                <p style="font-weight: bold; font-size: 14px; color: #f77f00; margin: 0;">Criado por Gustavo Z Lago</p>
+                <p style="font-size: 12px; color: #8d99ae; margin: 0;">Brasil • 19 de setembro de 2026</p>
+            </div>
         </div>
+    </div>
 
-        <button id="startTournamentBtn" class="btn-tournament" onclick="startTournament()" style="display:none; grid-column: span 2;">🏆 Iniciar Torneio</button>
-        <button id="resignBtn" class="btn-danger" onclick="resignGame()" disabled style="grid-column: span 2;">Desistir</button>
+    <!-- Modal de Configurações Oculto -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>⚙️ Painel de Controlo & Modos</span>
+                <button class="modal-close" onclick="toggleSettingsModal()">✕ Fechar</button>
+            </div>
+
+            <div class="controls">
+                <input type="text" id="nickInput" class="nick-input" placeholder="Seu Nickname" value="Jogador">
+                
+                <div class="control-group">
+                    <label for="colorSelect" style="font-size: 12px; font-weight: bold; white-space: nowrap;">Cor:</label>
+                    <select id="colorSelect" style="width: 100%;">
+                        <option value="w">♔ Brancas</option>
+                        <option value="b">♚ Pretas</option>
+                        <option value="random">🎲 Aleatória</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="difficultySelect" style="font-size: 12px; font-weight: bold; white-space: nowrap;">🧠 Nível IA:</label>
+                    <select id="difficultySelect" style="width: 100%;">
+                        <option value="1">🌱 Iniciante (Erros Frequentes)</option>
+                        <option value="2">⚔️ Intermediário (Nível 2)</option>
+                        <option value="3" selected>🔥 Avançado (Nível 3)</option>
+                        <option value="4">👑 Mestre (Nível 4)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="maxUsersSelect" style="font-size: 12px; font-weight: bold; white-space: nowrap;">👥 Lotação:</label>
+                    <select id="maxUsersSelect" style="width: 100%;">
+                        <option value="20">Até 20 pessoas</option>
+                        <option value="50">Até 50 pessoas</option>
+                        <option value="100" selected>Até 100 pessoas</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="timeSelect" style="font-size: 12px; font-weight: bold; white-space: nowrap;">⏱️ Tempo:</label>
+                    <select id="timeSelect" style="width: 100%;" onchange="changeTimeSetting()">
+                        <option value="0">Infinito (Sem Tempo)</option>
+                        <option value="180">3 min (Blitz)</option>
+                        <option value="300" selected>5 min (Blitz)</option>
+                        <option value="600">10 min (Rápido)</option>
+                        <option value="900">15 min (Rápido)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="boardThemeSelect" style="font-size: 12px; font-weight: bold; white-space: nowrap;">🎨 Tabuleiro:</label>
+                    <select id="boardThemeSelect" style="width: 100%;" onchange="applyBoardTheme(this.value)">
+                        <option value="wood" selected>🪵 Madeira Clássica</option>
+                        <option value="green">🟩 Verde Torneio</option>
+                        <option value="blue">🌊 Azul Oceano</option>
+                        <option value="slate">🪨 Cinza Moderno</option>
+                        <option value="purple">🔮 Púrpura</option>
+                        <option value="neon">⚡ Cyberpunk Neon</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="pieceThemeSelect" style="font-size: 12px; font-weight: bold; white-space: nowrap;">♟️ Peças:</label>
+                    <select id="pieceThemeSelect" style="width: 100%;" onchange="applyPieceTheme(this.value)">
+                        <option value="wikipedia" selected>Clássico (Wikipedia)</option>
+                        <option value="cburnett">Moderno (Cburnett)</option>
+                        <option value="alpha">Alfa (Lichess)</option>
+                        <option value="pixel">Pixel / Retro</option>
+                        <option value="fantasy">Fantasia</option>
+                    </select>
+                </div>
+
+                <button onclick="startOffline('local'); toggleSettingsModal();">Offline Local</button>
+                <button class="btn-cpu" onclick="startOffline('cpu'); toggleSettingsModal();">🤖 vs IA</button>
+                
+                <div class="control-group">
+                    <input type="text" id="createRoomIdInput" placeholder="Código Criar">
+                    <button class="btn-alt" onclick="createOnlineRoom(); toggleSettingsModal();">Criar Sala</button>
+                </div>
+
+                <div class="control-group">
+                    <input type="text" id="joinRoomIdInput" placeholder="Código Entrar">
+                    <button class="btn-alt" onclick="joinOnlineRoom(); toggleSettingsModal();">Entrar</button>
+                </div>
+
+                <button id="startTournamentBtn" class="btn-tournament" onclick="startTournament(); toggleSettingsModal();" style="display:none; grid-column: span 2;">🏆 Iniciar Torneio (Com Bots)</button>
+                <button id="endTournamentBtn" class="btn-danger" onclick="endTournament(); toggleSettingsModal();" style="display:none; grid-column: span 2;">⛔ Encerrar Torneio</button>
+                <button id="resignBtn" class="btn-danger" onclick="resignGame(); toggleSettingsModal();" disabled style="grid-column: span 2;">Desistir da Partida</button>
+            </div>
+        </div>
     </div>
 
     <div id="roomDisplay"></div>
@@ -389,8 +648,18 @@
             </div>
         </div>
 
-        <!-- Coluna Central: Tabuleiro -->
+        <!-- Coluna Central: Tabuleiro e Relógios -->
         <div class="board-wrapper">
+            <div class="clock-container" id="clockContainer">
+                <div class="clock-card" id="clockCardWhite">
+                    <span class="clock-name">♔ Brancas</span>
+                    <span class="clock-time" id="clockTimeWhite">05:00</span>
+                </div>
+                <div class="clock-card" id="clockCardBlack">
+                    <span class="clock-name">♚ Pretas</span>
+                    <span class="clock-time" id="clockTimeBlack">05:00</span>
+                </div>
+            </div>
             <div id="board"></div>
         </div>
 
@@ -423,7 +692,7 @@
             </div>
 
             <div class="panel">
-                <div class="panel-header" id="userCountHeader">Pessoas na Sala (0/20)</div>
+                <div class="panel-header" id="userCountHeader">Pessoas na Sala (0/100)</div>
                 <div id="userList">
                     <div style="text-align: center; color: #8d99ae;">Nenhuma sala ativa.</div>
                 </div>
@@ -451,6 +720,16 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <script>
+        function toggleSettingsModal() {
+            let modal = document.getElementById('settingsModal');
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function toggleAboutModal() {
+            let modal = document.getElementById('aboutModal');
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
         const peerOptions = {
             config: {
                 iceServers: [
@@ -460,6 +739,53 @@
                 ]
             }
         };
+
+        const boardThemes = {
+            wood: { light: '#f0d9b5', dark: '#b58863' },
+            green: { light: '#eeeed2', dark: '#769656' },
+            blue: { light: '#dee3e6', dark: '#4b7399' },
+            slate: { light: '#e1e1e1', dark: '#566573' },
+            purple: { light: '#f0e6f6', dark: '#7c3aed' },
+            neon: { light: '#2a2a3e', dark: '#00b4d8' }
+        };
+
+        const pieceThemes = {
+            wikipedia: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+            cburnett: 'https://raw.githubusercontent.com/lichess-org/lila/master/public/piece/cburnett/{piece}.svg',
+            alpha: 'https://raw.githubusercontent.com/lichess-org/lila/master/public/piece/alpha/{piece}.svg',
+            pixel: 'https://raw.githubusercontent.com/lichess-org/lila/master/public/piece/pixel/{piece}.svg',
+            fantasy: 'https://raw.githubusercontent.com/lichess-org/lila/master/public/piece/fantasy/{piece}.svg'
+        };
+
+        let currentPieceTheme = 'wikipedia';
+
+        function applyBoardTheme(themeName) {
+            const theme = boardThemes[themeName] || boardThemes.wood;
+            document.documentElement.style.setProperty('--board-light', theme.light);
+            document.documentElement.style.setProperty('--board-dark', theme.dark);
+            localStorage.setItem('chess_board_theme', themeName);
+        }
+
+        function applyPieceTheme(themeName) {
+            currentPieceTheme = themeName;
+            localStorage.setItem('chess_piece_theme', themeName);
+            if (board) {
+                let currentOrientation = board.orientation();
+                if (typeof board.destroy === 'function') board.destroy();
+                $('#board').empty();
+                board = null;
+                initBoard(currentOrientation);
+            }
+        }
+
+        function loadSavedThemes() {
+            const savedBoard = localStorage.getItem('chess_board_theme') || 'wood';
+            const savedPiece = localStorage.getItem('chess_piece_theme') || 'wikipedia';
+            document.getElementById('boardThemeSelect').value = savedBoard;
+            document.getElementById('pieceThemeSelect').value = savedPiece;
+            applyBoardTheme(savedBoard);
+            currentPieceTheme = savedPiece;
+        }
 
         let audioCtx = null;
 
@@ -503,24 +829,211 @@
         let tournamentActive = false;
         let tournamentData = null;
 
+        /* --- RELÓGIO DE PRECISÃO --- */
+        let timeControlSeconds = 300;
+        let whiteTimeMs = 300000;
+        let blackTimeMs = 300000;
+        let lastMoveTimestamp = null;
+        let activeClockSide = 'w';
+        let clockTimer = null;
+
         let myPeerId = 'HOST';
         let myNick = 'Jogador';
         let myRole = 'offline';
         let mode = 'offline';
 
-        const MAX_USERS = 20;
+        let maxUsers = 100;
+
+        /* --- MOTOR DE IA DE XADREZ --- */
+        const pieceValues = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+        const pstPawn = [
+            0,  0,  0,  0,  0,  0,  0,  0,
+           50, 50, 50, 50, 50, 50, 50, 50,
+           10, 10, 20, 30, 30, 20, 10, 10,
+            5,  5, 10, 25, 25, 10,  5,  5,
+            0,  0,  0, 20, 20,  0,  0,  0,
+            5, -5,-10,  0,  0,-10, -5,  5,
+            5, 10, 10,-20,-20, 10, 10,  5,
+            0,  0,  0,  0,  0,  0,  0,  0
+        ];
+
+        const pstKnight = [
+          -50,-40,-30,-30,-30,-30,-40,-50,
+          -40,-20,  0,  0,  0,  0,-20,-40,
+          -30,  0, 10, 15, 15, 10,  0,-30,
+          -30,  5, 15, 20, 20, 15,  5,-30,
+          -30,  0, 15, 20, 20, 15,  0,-30,
+          -30,  5, 10, 15, 15, 10,  5,-30,
+          -40,-20,  0,  5,  5,  0,-20,-40,
+          -50,-40,-30,-30,-30,-30,-40,-50
+        ];
+
+        const pstBishop = [
+          -20,-10,-10,-10,-10,-10,-10,-20,
+          -10,  0,  0,  0,  0,  0,  0,-10,
+          -10,  0,  5, 10, 10,  5,  0,-10,
+          -10,  5,  5, 10, 10,  5,  5,-10,
+          -10,  0, 10, 10, 10, 10,  0,-10,
+          -10, 10, 10, 10, 10, 10, 10,-10,
+          -10,  5,  0,  0,  0,  0,  5,-10,
+          -20,-10,-10,-10,-10,-10,-10,-20
+        ];
+
+        const pstRook = [
+            0,  0,  0,  0,  0,  0,  0,  0,
+            5, 10, 10, 10, 10, 10, 10,  5,
+           -5,  0,  0,  0,  0,  0,  0, -5,
+           -5,  0,  0,  0,  0,  0,  0, -5,
+           -5,  0,  0,  0,  0,  0,  0, -5,
+           -5,  0,  0,  0,  0,  0,  0, -5,
+           -5,  0,  0,  0,  0,  0,  0, -5,
+            0,  0,  0,  5,  5,  0,  0,  0
+        ];
+
+        const pstQueen = [
+          -20,-10,-10, -5, -5,-10,-10,-20,
+          -10,  0,  0,  0,  0,  0,  0,-10,
+          -10,  0,  5,  5,  5,  5,  0,-10,
+           -5,  0,  5,  5,  5,  5,  0, -5,
+            0,  0,  5,  5,  5,  5,  0, -5,
+          -10,  5,  5,  5,  5,  5,  0,-10,
+          -10,  0,  5,  0,  0,  0,  0,-10,
+          -20,-10,-10, -5, -5,-10,-10,-20
+        ];
+
+        const pstKing = [
+          -30,-40,-40,-50,-50,-40,-40,-30,
+          -30,-40,-40,-50,-50,-40,-40,-30,
+          -30,-40,-40,-50,-50,-40,-40,-30,
+          -30,-40,-40,-50,-50,-40,-40,-30,
+          -20,-30,-30,-40,-40,-30,-30,-20,
+          -10,-20,-20,-20,-20,-20,-20,-10,
+           20, 20,  0,  0,  0,  0, 20, 20,
+           20, 30, 10,  0,  0, 10, 30, 20
+        ];
+
+        const pstMap = { p: pstPawn, n: pstKnight, b: pstBishop, r: pstRook, q: pstQueen, k: pstKing };
+
+        function evaluateBoard(game, depth) {
+            if (game.in_checkmate()) {
+                return game.turn() === 'w' ? (-99999 - depth) : (99999 + depth);
+            }
+            if (game.in_draw()) return 0;
+
+            let totalEvaluation = 0;
+            let b = game.board();
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    let piece = b[r][c];
+                    if (piece) {
+                        let pieceVal = pieceValues[piece.type] || 0;
+                        let pst = pstMap[piece.type];
+                        let pstVal = 0;
+                        if (pst) {
+                            let idx = piece.color === 'w' ? (r * 8 + c) : ((7 - r) * 8 + c);
+                            pstVal = pst[idx] || 0;
+                        }
+                        let score = pieceVal + pstVal;
+                        if (piece.color === 'w') totalEvaluation += score;
+                        else totalEvaluation -= score;
+                    }
+                }
+            }
+            return totalEvaluation;
+        }
+
+        function minimax(game, depth, alpha, beta, isMaximizing) {
+            if (depth === 0 || game.game_over()) {
+                return evaluateBoard(game, depth);
+            }
+
+            let moves = game.moves({ verbose: true });
+            moves.sort((a, b) => (b.captured ? 10 : 0) - (a.captured ? 10 : 0));
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let move of moves) {
+                    game.move(move);
+                    let evalVal = minimax(game, depth - 1, alpha, beta, false);
+                    game.undo();
+                    maxEval = Math.max(maxEval, evalVal);
+                    alpha = Math.max(alpha, evalVal);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let move of moves) {
+                    game.move(move);
+                    let evalVal = minimax(game, depth - 1, alpha, beta, true);
+                    game.undo();
+                    minEval = Math.min(minEval, evalVal);
+                    beta = Math.min(beta, evalVal);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function getBestMove(game, level = 3) {
+            let moves = game.moves({ verbose: true });
+            if (moves.length === 0) return null;
+
+            if (level === 1 && Math.random() < 0.60) {
+                return moves[Math.floor(Math.random() * moves.length)];
+            }
+
+            if (level === 2 && Math.random() < 0.20) {
+                return moves[Math.floor(Math.random() * moves.length)];
+            }
+
+            let depth = level;
+            let isMaximizing = (game.turn() === 'w');
+            let moveScores = [];
+
+            moves.sort((a, b) => (b.captured ? 10 : 0) - (a.captured ? 10 : 0));
+
+            for (let move of moves) {
+                game.move(move);
+                let boardValue = minimax(game, depth - 1, -Infinity, Infinity, !isMaximizing);
+                game.undo();
+
+                if (level === 1) {
+                    boardValue += (Math.random() - 0.5) * 450;
+                } else if (level === 2) {
+                    boardValue += (Math.random() - 0.5) * 120;
+                }
+
+                moveScores.push({ move: move, score: boardValue });
+            }
+
+            if (isMaximizing) {
+                moveScores.sort((a, b) => b.score - a.score);
+            } else {
+                moveScores.sort((a, b) => a.score - b.score);
+            }
+
+            return moveScores[0].move;
+        }
+
+        function getBotLevel(botId) {
+            let nick = userNicks[botId] || '';
+            if (nick.includes('Zetta')) return 4;
+            if (nick.includes('Ômega') || nick.includes('Sigma')) return 3;
+            if (nick.includes('Gama') || nick.includes('Delta')) return 2;
+            if (nick.includes('Alfa') || nick.includes('Beta')) return 1;
+            return 2;
+        }
 
         const cpuDialogues = {
-            start: ["Que comece o jogo! Boa sorte humano.", "Processando estratégias...", "Estou pronto! Mostre-me suas melhores jogadas."],
-            check: ["Xeque! Cuidado com o seu Rei.", "Seu Rei está sob ameaça!", "Sinta a pressão! Xeque no tabuleiro."],
-            capture: ["Obrigado por essa peça!", "Uma troca interessante... para mim!", "Menos uma peça no seu exército!"],
-            chatResponses: ["Estou analisando posições, mas posso conversar também!", "Interessante observação... agora veja este movimento!", "Boa tentativa de me distrair!"],
-            win: ["Xeque-mate! As máquinas prevalecem desta vez.", "Excelente partida! Quer tentar uma revanche?"],
-            loss: ["Parabéns! Suas táticas foram superiores.", "Você jogou muito bem."]
+            start: ["Que comece o jogo! Boa sorte humano.", "Processando estratégias...", "Estou pronto!"],
+            chatResponses: ["Estou focado na partida!", "Interessante jogada...", "Analisando posições..."],
         };
 
         function cpuSpeak(category, delay = 600) {
-            if (!isCpuMode) return;
+            if (!isCpuMode && !tournamentActive) return;
             let list = cpuDialogues[category];
             if (!list || list.length === 0) return;
             let msg = list[Math.floor(Math.random() * list.length)];
@@ -534,6 +1047,146 @@
 
         function sanitizeRoomCode(code) {
             return code.replace(/[^a-zA-Z0-9_-]/g, '');
+        }
+
+        function formatTime(seconds) {
+            if (seconds <= 0) return '00:00';
+            let mins = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function changeTimeSetting() {
+            timeControlSeconds = parseInt(document.getElementById('timeSelect').value, 10);
+            resetClocks();
+        }
+
+        function resetClocks() {
+            stopClock();
+            whiteTimeMs = timeControlSeconds * 1000;
+            blackTimeMs = timeControlSeconds * 1000;
+            lastMoveTimestamp = null;
+            activeClockSide = 'w';
+            updateClockDisplay();
+        }
+
+        function startClock() {
+            stopClock();
+            if (timeControlSeconds <= 0 || game.game_over()) return;
+
+            if (!lastMoveTimestamp) {
+                lastMoveTimestamp = Date.now();
+            }
+
+            clockTimer = setInterval(() => {
+                if (game.history().length === 0 || game.game_over()) return;
+
+                let now = Date.now();
+                let elapsed = now - lastMoveTimestamp;
+
+                let currentWhiteMs = whiteTimeMs;
+                let currentBlackMs = blackTimeMs;
+
+                if (activeClockSide === 'w') {
+                    currentWhiteMs = Math.max(0, whiteTimeMs - elapsed);
+                    if (currentWhiteMs <= 0) {
+                        whiteTimeMs = 0;
+                        stopClock();
+                        updateClockDisplay();
+                        handleTimeoutLoss('w');
+                        return;
+                    }
+                } else {
+                    currentBlackMs = Math.max(0, blackTimeMs - elapsed);
+                    if (currentBlackMs <= 0) {
+                        blackTimeMs = 0;
+                        stopClock();
+                        updateClockDisplay();
+                        handleTimeoutLoss('b');
+                        return;
+                    }
+                }
+
+                updateClockDisplay(currentWhiteMs, currentBlackMs);
+            }, 100);
+        }
+
+        function stopClock() {
+            if (clockTimer) {
+                clearInterval(clockTimer);
+                clockTimer = null;
+            }
+        }
+
+        function onMoveExecuted() {
+            let now = Date.now();
+            if (lastMoveTimestamp && timeControlSeconds > 0) {
+                let elapsed = now - lastMoveTimestamp;
+                if (activeClockSide === 'w') {
+                    whiteTimeMs = Math.max(0, whiteTimeMs - elapsed);
+                } else {
+                    blackTimeMs = Math.max(0, blackTimeMs - elapsed);
+                }
+            }
+            lastMoveTimestamp = now;
+            activeClockSide = game.turn();
+
+            if (game.history().length === 1 && timeControlSeconds > 0) {
+                startClock();
+            }
+
+            updateClockDisplay();
+        }
+
+        function updateClockDisplay(overrideWhiteMs = null, overrideBlackMs = null) {
+            let timeW = document.getElementById('clockTimeWhite');
+            let timeB = document.getElementById('clockTimeBlack');
+            let cardW = document.getElementById('clockCardWhite');
+            let cardB = document.getElementById('clockCardBlack');
+
+            if (timeControlSeconds <= 0) {
+                timeW.innerText = '∞';
+                timeB.innerText = '∞';
+                cardW.classList.remove('active', 'low-time');
+                cardB.classList.remove('active', 'low-time');
+                return;
+            }
+
+            let wMs = overrideWhiteMs !== null ? overrideWhiteMs : whiteTimeMs;
+            let bMs = overrideBlackMs !== null ? overrideBlackMs : blackTimeMs;
+
+            let wSec = Math.max(0, Math.ceil(wMs / 1000));
+            let bSec = Math.max(0, Math.ceil(bMs / 1000));
+
+            timeW.innerText = formatTime(wSec);
+            timeB.innerText = formatTime(bSec);
+
+            let isGameRunning = game.history().length > 0 && !game.game_over();
+            let currentTurn = game.turn();
+
+            cardW.classList.toggle('active', isGameRunning && currentTurn === 'w');
+            cardB.classList.toggle('active', isGameRunning && currentTurn === 'b');
+
+            cardW.classList.toggle('low-time', wSec <= 30 && wSec > 0);
+            cardB.classList.toggle('low-time', bSec <= 30 && bSec > 0);
+        }
+
+        function handleTimeoutLoss(loserRole) {
+            stopClock();
+            let winnerRole = loserRole === 'w' ? 'b' : 'w';
+            let winnerId = winnerRole === 'w' ? activeWhite : activeBlack;
+            let loserId = winnerRole === 'w' ? activeBlack : activeWhite;
+            let winnerNick = userNicks[winnerId] || (winnerRole === 'w' ? 'Brancas' : 'Pretas');
+
+            if (mode === 'online' && isHost) {
+                registerScoreResult(winnerId, loserId, false);
+                addChatMessage('', `⏱️ Tempo esgotado! ${winnerNick} venceu no relógio.`, 'system');
+                broadcast({ type: 'sys_msg', text: `⏱️ Tempo esgotado! ${winnerNick} venceu no relógio.` });
+                setTimeout(() => finishMatch(winnerId), 2000);
+            } else if (mode === 'offline') {
+                document.getElementById('status').innerText = `⏱️ Tempo esgotado! ${winnerRole === 'w' ? 'Brancas' : 'Pretas'} venceram.`;
+                addChatMessage('', `⏱️ Tempo esgotado! ${winnerRole === 'w' ? 'Brancas' : 'Pretas'} venceram.`, 'system');
+            }
         }
 
         function updateMoveHistory() {
@@ -585,9 +1238,11 @@
 
         function onDrop (source, target) {
             let move = game.move({ from: source, to: target, promotion: 'q' });
+
             if (move === null) return 'snapback';
 
             tocarSomMovimento();
+            onMoveExecuted();
             updateStatus();
 
             if (mode === 'online') {
@@ -597,23 +1252,57 @@
                     hostConn.send({ type: 'move', move: move, fen: game.fen() });
                 }
             } else if (isCpuMode && !game.game_over()) {
-                window.setTimeout(makeCpuMove, 300);
+                makeCpuMove();
+            }
+        }
+
+        function checkTournamentBotTurn() {
+            if (!tournamentActive || game.game_over() || !isHost) return;
+
+            let currentTurnRole = game.turn();
+            let currentTurnPlayer = currentTurnRole === 'w' ? activeWhite : activeBlack;
+
+            if (currentTurnPlayer && currentTurnPlayer.startsWith('BOT_')) {
+                makeCpuMove();
             }
         }
 
         function makeCpuMove() {
             if (game.game_over()) return;
-            let moves = game.moves({ verbose: true });
-            if (moves.length === 0) return;
 
-            let randomMove = moves[Math.floor(Math.random() * moves.length)];
-            game.move(randomMove);
-            board.position(game.fen());
-            updateStatus();
-            tocarSomMovimento();
+            let currentTurnRole = game.turn();
+            let currentBotId = currentTurnRole === 'w' ? activeWhite : activeBlack;
+
+            let level = 3;
+            if (mode === 'offline' && isCpuMode) {
+                level = parseInt(document.getElementById('difficultySelect').value, 10) || 3;
+            } else if (tournamentActive && currentBotId) {
+                level = getBotLevel(currentBotId);
+            }
+
+            let thinkingDelay = (level <= 2) ? 1400 : 700;
+
+            setTimeout(() => {
+                if (game.game_over()) return;
+                let bestMove = getBestMove(game, level);
+                if (!bestMove) return;
+
+                let move = game.move(bestMove);
+
+                if (mode === 'online' && isHost) {
+                    handleGameMove(currentBotId, move, true);
+                } else {
+                    onMoveExecuted();
+                    if (board) board.position(game.fen(), false);
+                    updateStatus();
+                    tocarSomMovimento();
+                }
+            }, thinkingDelay);
         }
 
-        function onSnapEnd () { board.position(game.fen()); }
+        function onSnapEnd () { 
+            board.position(game.fen(), false);
+        }
 
         function updateStatus () {
             let status = '';
@@ -622,9 +1311,11 @@
             updateMoveHistory();
 
             if (game.in_checkmate()) {
+                stopClock();
                 let winnerColor = game.turn() === 'w' ? 'Pretas' : 'Brancas';
                 status = `Xeque-mate! ${winnerColor} venceram!`;
             } else if (game.in_draw()) {
+                stopClock();
                 status = 'Fim de jogo: Empate.';
             } else {
                 if (mode === 'online') {
@@ -636,7 +1327,7 @@
                     }
                 } else if (isCpuMode) {
                     let isCpuTurn = game.turn() !== playerColor;
-                    status = isCpuTurn ? `🤖 Computador pensando...` : `Sua vez (${moveColorName})!`;
+                    status = isCpuTurn ? `🤖 Computador a pensar...` : `Sua vez (${moveColorName})!`;
                 } else {
                     status = 'Vez das ' + moveColorName;
                 }
@@ -646,35 +1337,37 @@
         }
 
         function initBoard(orientation = 'white') {
+            let pieceUrl = pieceThemes[currentPieceTheme] || pieceThemes.wikipedia;
+            
             if (board) {
                 board.orientation(orientation);
-                board.position(game.fen());
+                board.position(game.fen(), false);
             } else {
                 let config = {
                     draggable: true,
                     position: game.fen(),
                     orientation: orientation,
-                    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+                    pieceTheme: pieceUrl,
+                    moveSpeed: 'instant',
+                    snapbackSpeed: 0,
+                    snapSpeed: 0,
                     onDragStart: onDragStart,
                     onDrop: onDrop,
                     onSnapEnd: onSnapEnd
                 };
                 board = Chessboard('board', config);
-                const boardEl = document.getElementById('board');
-                if (boardEl) {
-                    boardEl.addEventListener('touchmove', function(e) {
-                        e.preventDefault();
-                    }, { passive: false });
-                }
             }
+
+            $('#board').off('dragstart', 'img').on('dragstart', 'img', function(e) {
+                e.preventDefault();
+            });
+
             updateStatus();
             setTimeout(resizeBoard, 200);
         }
 
         function resizeBoard() {
-            if (board) {
-                board.resize();
-            }
+            if (board) board.resize();
         }
 
         $(window).on('resize orientationchange', function() {
@@ -686,7 +1379,10 @@
             document.getElementById('chatInput').disabled = !enableChat;
             document.getElementById('chatBtn').disabled = !enableChat;
             document.getElementById('resignBtn').disabled = !inOnlineGame || (myRole !== 'w' && myRole !== 'b');
-            document.getElementById('startTournamentBtn').style.display = (isHost && inOnlineGame) ? 'block' : 'none';
+            
+            document.getElementById('startTournamentBtn').style.display = (isHost && inOnlineGame && !tournamentActive) ? 'block' : 'none';
+            document.getElementById('endTournamentBtn').style.display = (isHost && inOnlineGame && tournamentActive) ? 'block' : 'none';
+            
             document.getElementById('scorePanel').style.display = inOnlineGame ? 'flex' : 'none';
             document.getElementById('tournamentPanel').style.display = tournamentActive ? 'flex' : 'none';
         }
@@ -738,7 +1434,7 @@
         function renderUserList(users) {
             let userListEl = document.getElementById('userList');
             userListEl.innerHTML = '';
-            document.getElementById('userCountHeader').innerText = `Pessoas na Sala (${users.length}/${MAX_USERS})`;
+            document.getElementById('userCountHeader').innerText = `Pessoas na Sala (${users.length}/${maxUsers})`;
 
             users.forEach(u => {
                 let badgeClass = 'role-spec';
@@ -840,6 +1536,7 @@
         }
 
         function resetPeer() {
+            stopClock();
             if (peer) { peer.destroy(); peer = null; }
             board = null;
             connections = {};
@@ -862,11 +1559,12 @@
             playerColor = (selectedColor === 'random') ? (Math.random() < 0.5 ? 'w' : 'b') : selectedColor;
 
             resetPeer();
+            resetClocks();
             
             document.getElementById('roomDisplay').style.display = 'none';
             document.getElementById('chatMessages').innerHTML = '';
             document.getElementById('userList').innerHTML = `<div style="text-align: center; color: #8d99ae;">Modo Offline (${isCpuMode ? 'vs IA' : 'Local'}).</div>`;
-            document.getElementById('userCountHeader').innerText = 'Pessoas na Sala (0/20)';
+            document.getElementById('userCountHeader').innerText = 'Pessoas na Sala (0/100)';
             
             let colorName = playerColor === 'w' ? 'Brancas ♔' : 'Pretas ♚';
             addChatMessage('', isCpuMode ? `🤖 Modo Contra IA ativado! Você joga de ${colorName}.` : 'Modo Offline (2 Jogadores Local)', 'system');
@@ -892,6 +1590,9 @@
             myNick = getNick();
             game.reset();
             resetPeer();
+            resetClocks();
+
+            maxUsers = parseInt(document.getElementById('maxUsersSelect').value, 10) || 100;
 
             let customCode = sanitizeRoomCode(document.getElementById('createRoomIdInput').value.trim());
             document.getElementById('chatMessages').innerHTML = '';
@@ -909,7 +1610,7 @@
                 updateRoomHeaderDisplay();
                 updateRoomState();
                 initBoard('white');
-                addChatMessage('', `Sala criada por ${myNick}. Aguardando oponente entrar...`, 'system');
+                addChatMessage('', `Sala criada por ${myNick}. Capacidade: ${maxUsers} pessoas.`, 'system');
             });
 
             peer.on('error', (err) => {
@@ -918,7 +1619,7 @@
             });
 
             peer.on('connection', (c) => {
-                if (Object.keys(connections).length >= MAX_USERS - 1) {
+                if (Object.keys(connections).length >= maxUsers - 1) {
                     c.on('open', () => { c.send({ type: 'error', text: 'Sala cheia!' }); setTimeout(() => c.close(), 500); });
                     return;
                 }
@@ -937,8 +1638,8 @@
             display.style.display = 'block';
             let hasOpponent = (activeWhite && activeBlack);
             let statusIcon = hasOpponent ? '⚡' : '⏳';
-            let statusText = hasOpponent ? 'EM JOGO' : 'AGUARDANDO OPONENTE';
-            display.innerHTML = `${statusIcon} <strong>SALA (${escapeHtml(myNick)})</strong> | Código: <mark>${myPeerId}</mark> | Status: <u>${statusText}</u>`;
+            let statusText = hasOpponent ? 'EM JOGO' : 'AGUARDANDO JOGADORES / BOTS';
+            display.innerHTML = `${statusIcon} <strong>SALA (${escapeHtml(myNick)})</strong> | Código: <mark>${myPeerId}</mark> | Lotação Máx: ${maxUsers} | Status: <u>${statusText}</u>`;
         }
 
         function handleHostReceivedData(c, data) {
@@ -978,16 +1679,25 @@
                 if (!res) return;
             }
 
-            if (board) board.position(game.fen());
+            onMoveExecuted();
+
+            if (board) board.position(game.fen(), false);
             updateStatus();
             
             if (peerId !== myPeerId) {
                 tocarSomMovimento();
             }
 
-            broadcast({ type: 'move', move: move, fen: game.fen() }, peerId);
+            broadcast({ 
+                type: 'move', 
+                move: move, 
+                fen: game.fen(), 
+                whiteTimeMs: whiteTimeMs, 
+                blackTimeMs: blackTimeMs 
+            }, peerId);
 
             if (game.in_checkmate()) {
+                stopClock();
                 let winnerRole = game.turn() === 'w' ? 'b' : 'w';
                 let winnerId = winnerRole === 'w' ? activeWhite : activeBlack;
                 let loserId = winnerRole === 'w' ? activeBlack : activeWhite;
@@ -1000,14 +1710,17 @@
                 setTimeout(() => finishMatch(winnerId), 2500);
 
             } else if (game.in_draw()) {
+                stopClock();
                 registerScoreResult(activeWhite, activeBlack, true);
                 addChatMessage('', `Empate! Partida finalizada com 0.5 ponto para cada.`, 'system');
                 broadcast({ type: 'sys_msg', text: `Empate! Partida finalizada com 0.5 ponto para cada.` });
                 
                 setTimeout(() => {
                     if (tournamentActive) finishMatch(activeWhite);
-                    else { game.reset(); updateRoomState(); }
+                    else { game.reset(); resetClocks(); updateRoomState(); }
                 }, 2500);
+            } else {
+                checkTournamentBotTurn();
             }
         }
 
@@ -1022,6 +1735,7 @@
         }
 
         function finishMatch(winnerId) {
+            stopClock();
             if (tournamentActive) {
                 advanceTournamentWinner(tournamentData.currentMatch, winnerId);
                 setupNextTournamentMatch();
@@ -1032,11 +1746,13 @@
                 activeWhite = winnerId;
                 activeBlack = spectatorQueue.length > 0 ? spectatorQueue.shift() : null;
                 game.reset();
+                resetClocks();
                 updateRoomState();
             }
         }
 
         function handleResignation(loserRole) {
+            stopClock();
             let winnerRole = loserRole === 'w' ? 'b' : 'w';
             let loserNick = userNicks[loserRole === 'w' ? activeWhite : activeBlack];
             let winnerId = winnerRole === 'w' ? activeWhite : activeBlack;
@@ -1063,9 +1779,11 @@
                 if (activeWhite === peerId) {
                     activeWhite = spectatorQueue.length > 0 ? spectatorQueue.shift() : null;
                     game.reset();
+                    resetClocks();
                 } else if (activeBlack === peerId) {
                     activeBlack = spectatorQueue.length > 0 ? spectatorQueue.shift() : null;
                     game.reset();
+                    resetClocks();
                 }
             }
 
@@ -1104,7 +1822,11 @@
                     scores: scores,
                     userNicks: userNicks,
                     tournamentActive: tournamentActive,
-                    tournamentData: tournamentData
+                    tournamentData: tournamentData,
+                    whiteTimeMs: whiteTimeMs,
+                    blackTimeMs: blackTimeMs,
+                    timeControlSeconds: timeControlSeconds,
+                    maxUsers: maxUsers
                 });
             });
         }
@@ -1119,6 +1841,7 @@
             myNick = getNick();
             game.reset();
             resetPeer();
+            resetClocks();
 
             document.getElementById('chatMessages').innerHTML = '';
             peer = new Peer(peerOptions);
@@ -1145,6 +1868,10 @@
                 userNicks = data.userNicks || {};
                 tournamentActive = data.tournamentActive;
                 tournamentData = data.tournamentData;
+                whiteTimeMs = data.whiteTimeMs || 300000;
+                blackTimeMs = data.blackTimeMs || 300000;
+                timeControlSeconds = data.timeControlSeconds;
+                maxUsers = data.maxUsers || 100;
 
                 let orientation = (myRole === 'b') ? 'black' : 'white';
                 game.load(data.fen);
@@ -1154,13 +1881,23 @@
                 renderScoreTable();
                 renderBracketDisplay();
 
+                lastMoveTimestamp = Date.now();
+                activeClockSide = game.turn();
+                updateClockDisplay();
+
                 let roleLabel = myRole === 'w' ? 'Jogador (Brancas)' : (myRole === 'b' ? 'Jogador (Pretas)' : 'Espectador');
                 document.getElementById('roomDisplay').style.display = 'block';
-                document.getElementById('roomDisplay').innerHTML = `✅ <strong>SALA CONECTADA</strong> | Papel: <u>${roleLabel}</u>`;
+                document.getElementById('roomDisplay').innerHTML = `✅ <strong>SALA CONECTADA</strong> | Lotação Máx: ${maxUsers} | Papel: <u>${roleLabel}</u>`;
 
             } else if (data.type === 'move') {
                 game.move(data.move);
-                if (board) board.position(game.fen());
+                if (data.whiteTimeMs !== undefined) whiteTimeMs = data.whiteTimeMs;
+                if (data.blackTimeMs !== undefined) blackTimeMs = data.blackTimeMs;
+
+                lastMoveTimestamp = Date.now();
+                activeClockSide = game.turn();
+
+                if (board) board.position(game.fen(), false);
                 updateStatus();
                 tocarSomMovimento();
 
@@ -1177,20 +1914,35 @@
 
         function startTournament() {
             if (!isHost) return;
-            let players = [myPeerId, ...Object.keys(connections)];
-            if (players.length < 2) { alert('Necessário 2 jogadores!'); return; }
+            let humanPlayers = [myPeerId, ...Object.keys(connections)];
+            
+            let targetSize = 4;
+            while (targetSize < humanPlayers.length) {
+                targetSize *= 2;
+            }
+
+            let botNames = ["🤖 Bot Alfa", "🤖 Bot Beta", "🤖 Bot Gama", "🤖 Bot Delta", "🤖 Bot Ômega", "🤖 Bot Sigma", "🤖 Bot Zetta"];
+            let players = [...humanPlayers];
+            let botIndex = 0;
+
+            while (players.length < targetSize) {
+                let botId = `BOT_${botIndex + 1}`;
+                let botNick = botNames[botIndex % botNames.length] + (botIndex >= botNames.length ? ` ${Math.floor(botIndex/botNames.length)+1}` : '');
+                userNicks[botId] = botNick;
+                initPlayerScore(botId);
+                players.push(botId);
+                botIndex++;
+            }
 
             players.sort(() => Math.random() - 0.5);
 
-            let pow = 2;
-            while (pow < players.length) pow *= 2;
-
+            let pow = targetSize;
             let roundsCount = Math.log2(pow);
             let rounds = [];
 
             let r1 = [];
             for (let i = 0; i < pow; i += 2) {
-                r1.push({ p1: players[i] || 'BYE', p2: players[i+1] || 'BYE', winner: null });
+                r1.push({ p1: players[i], p2: players[i+1], winner: null });
             }
             rounds.push(r1);
 
@@ -1204,17 +1956,23 @@
             tournamentActive = true;
             tournamentData = { rounds: rounds, currentRound: 0, currentMatch: 0 };
 
-            processByes();
             setupNextTournamentMatch();
-            addChatMessage('', '🏆 TORNEIO INICIADO!', 'system');
+            let botCount = players.length - humanPlayers.length;
+            let msgText = `🏆 TORNEIO INICIADO com ${players.length} participantes${botCount > 0 ? ` (${botCount} Bots)` : ''}!`;
+            addChatMessage('', msgText, 'system');
+            broadcast({ type: 'sys_msg', text: msgText });
         }
 
-        function processByes() {
-            let round = tournamentData.rounds[tournamentData.currentRound];
-            for (let mIdx = 0; mIdx < round.length; mIdx++) {
-                let m = round[mIdx];
-                if (m.p1 === 'BYE' && m.p2 !== 'BYE') advanceTournamentWinner(mIdx, m.p2);
-                else if (m.p2 === 'BYE' && m.p1 !== 'BYE') advanceTournamentWinner(mIdx, m.p1);
+        function endTournament() {
+            if (!isHost || !tournamentActive) return;
+            if (confirm('Tem certeza que deseja ENCERRAR o torneio em andamento?')) {
+                tournamentActive = false;
+                tournamentData = null;
+                addChatMessage('', '⛔ TORNEIO ENCERRADO PELO CRIADOR DA SALA.', 'system');
+                broadcast({ type: 'sys_msg', text: '⛔ TORNEIO ENCERRADO PELO CRIADOR DA SALA.' });
+                game.reset();
+                resetClocks();
+                updateRoomState();
             }
         }
 
@@ -1230,13 +1988,13 @@
                 if (rIdx + 1 < tournamentData.rounds.length) {
                     tournamentData.currentRound++;
                     tournamentData.currentMatch = 0;
-                    processByes();
                     setupNextTournamentMatch();
                     return;
                 } else {
                     let championId = tournamentData.rounds[rIdx][0].winner;
                     let championNick = userNicks[championId] || 'Campeão';
                     addChatMessage('', `🎉 TORNEIO FINALIZADO! Campeão: ${championNick}!`, 'system');
+                    broadcast({ type: 'sys_msg', text: `🎉 TORNEIO FINALIZADO! Campeão: ${championNick}!` });
                     tournamentActive = false;
                     updateRoomState();
                     return;
@@ -1247,8 +2005,31 @@
             activeWhite = match.p1;
             activeBlack = match.p2;
 
+            let isP1Bot = match.p1 && match.p1.startsWith('BOT_');
+            let isP2Bot = match.p2 && match.p2.startsWith('BOT_');
+
+            if (isP1Bot && isP2Bot) {
+                let winner = Math.random() < 0.5 ? match.p1 : match.p2;
+                let loser = winner === match.p1 ? match.p2 : match.p1;
+                registerScoreResult(winner, loser, false);
+                
+                let wNick = userNicks[winner];
+                let lNick = userNicks[loser];
+                addChatMessage('', `⚡ Simulação: ${wNick} venceu ${lNick}!`, 'system');
+                broadcast({ type: 'sys_msg', text: `⚡ Simulação: ${wNick} venceu ${lNick}!` });
+
+                advanceTournamentWinner(tournamentData.currentMatch, winner);
+                setTimeout(setupNextTournamentMatch, 1000);
+                return;
+            }
+
             game.reset();
+            resetClocks();
             updateRoomState();
+
+            if (isP1Bot && !isP2Bot) {
+                setTimeout(checkTournamentBotTurn, 1000);
+            }
         }
 
         function advanceTournamentWinner(matchIdx, winnerId) {
@@ -1263,6 +2044,8 @@
             }
         }
 
+        // Inicialização
+        loadSavedThemes();
         startOffline('local');
     </script>
 </body>
